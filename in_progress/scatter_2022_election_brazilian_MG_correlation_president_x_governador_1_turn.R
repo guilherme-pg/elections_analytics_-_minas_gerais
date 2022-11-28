@@ -1,9 +1,6 @@
 # CORRELATION VOTES PRESIDENT X GOVERNADOR IN DECISIVE BRAZILIAN STATES
 
 
-
-
-
 # SET MAIN DIRECTORY
 setwd("C:/Users/guima/Desktop/data_science/Projetos/elections_analytics_-_minas_gerais")
 
@@ -19,7 +16,8 @@ options(scipen=999)
 
 
 
-# general data
+# ~~~~~~~~~~~~~~~~  IMPORT DATA  ~~~~~~~~~~~~~~~~
+
 VOTES_state <- read.table("dados/votacao_secao_2022_MG.csv", header=TRUE, sep=";")
 
 VOTES_BR <- read.table("dados/votacao_secao_2022_BR.csv", header=TRUE, sep=";")
@@ -28,8 +26,43 @@ VOTES_BR <- read.table("dados/votacao_secao_2022_BR.csv", header=TRUE, sep=";")
 
 
 
+# ~~~~~~~~~~~~~~~~  PREVIOUS DATASETS ADJUSTMENTS  ~~~~~~~~~~~~~~~~
+
 # CUSTOM: SELECT STATE
 president_state <- filter(VOTES_BR, SG_UF=="MG")
+
+
+
+
+
+
+
+# ~~~~~~~~~~~~~~~~  FUNCTIONS  ~~~~~~~~~~~~~~~~
+
+
+# ~~~~ function ~~~~ SET PROPORTIONS AND PERCENTS
+
+set_proportions_and_percents <- function(votos_pr_2) {
+  # GROUP VOTES BY MUNICIPALITY to check the total votes
+  total_votos_mun <- votos_pr_2 %>%
+    group_by(CD_MUNICIPIO, NM_VOTAVEL) %>%
+    summarise(QT_VOTOS = sum(QT_VOTOS))
+  
+  # ADD COLUMN WITH TOTAL VOTES BY MUNICIPALITY
+  votos_pr_2$TOTAL_VOTOS <- total_votos_mun$QT_VOTOS[ match(votos_pr_2$CD_MUNICIPIO, total_votos_mun$CD_MUNICIPIO)  ]
+  
+  # ADD PROPORTION
+  votos_pr_2$PROPORTION <- votos_pr_2$QT_VOTOS/ votos_pr_2$TOTAL_VOTOS
+  
+  # ADD PERCENT
+  votos_pr_2$PERCENT <- votos_pr_2$PROPORTION *100
+  
+  # FORMAT PERCENT
+  votos_pr_2$PERCENT_FORMAT <- paste0(sprintf("%4.2f", votos_pr_2$PERCENT), "%")
+  
+  return(votos_pr_2)
+}
+
 
 
 
