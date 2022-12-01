@@ -18,6 +18,11 @@
 
 ![My Image](saved_charts/br_mg_election_2010_-_2018.gif)
 
+<p>On the other hand, the election for Governor proved to be relatively independent of the national elections, in which the election for President was not followed by the co-religionist at the state level.</p>
+
+![My Image](saved_charts/scatter_2022_election_brazilian_MG_correlation_president_x_governador_1_turn_v2.jpg)
+
+<p>In the first round of elections for Governor and President in 2022, the correlation between voters of the candidate for the Government, Zema, and the candidate for the Presidency, Bolsonaro, proved to be stronger than the relationship between Lula and Kalil, candidates for the Presidency and for the Government , respectively.</p>
 
 
 
@@ -26,4 +31,4 @@
 
 
 
-<p>Fonte: https://dadosabertos.tse.jus.br/dataset/</p>
+<p>Source: https://dadosabertos.tse.jus.br/dataset/</p>
