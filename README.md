@@ -25,10 +25,11 @@
 <p>In the first round of elections for Governor and President in 2022, the correlation between voters of the candidate for the Government, Zema, and the candidate for the Presidency, Bolsonaro, proved to be stronger than the relationship between Lula and Kalil, candidates for the Presidency and for the Government , respectively.</p>
 
 
-
-
-
-
-
-
 <p>Source: https://dadosabertos.tse.jus.br/dataset/</p>
+
+
+
+
+
+
+
