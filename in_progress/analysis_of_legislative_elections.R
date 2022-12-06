@@ -28,7 +28,32 @@ columns_names <- c(
 colnames(by_states) <- columns_names
 colnames(by_federals) <- columns_names
 
-
+parties_colores <- c(
+  "PMN"="tomato4",
+  "PCdoB"="red4",
+  "PSOL"="orange",
+  "PV"="green",
+  "PT"="red",
+  "PDT"="firebrick",
+  "PSB"="gold",
+  "Solidariedade"="darkorange4",
+  "MDB"="grey",
+  "PSD"="aquamarine1",
+  "PSDB"="royalblue",
+  "AVANTE"="brown1",
+  "PRP"="slategray1",
+  "PROS"="tan1",
+  "PP"="tan4",
+  "PTC"="lightskyblue1",
+  "PRTB"="chartreuse4",
+  "Patriota"="darkolivegreen1",
+  "PHS"="cadetblue2",
+  "PSC"="cyan",
+  "União Brasil"="deepskyblue",
+  "PL"="darkblue",
+  "PTB"="darkslategrey",
+  "Republicanos"="mediumblue"
+)
 
 
 
@@ -43,6 +68,34 @@ reduce_variables <- function(df) {
            NM_MUNICIPIO, DS_CARGO, NM_CANDIDATO, NM_URNA_CANDIDATO,
            SG_PARTIDO, NM_PARTIDO, QT_VOTOS_NOMINAIS_VALIDOS,
            DS_SIT_TOT_TURNO)
+  
+  return(df)
+}
+
+
+
+# ~~~~ function ~~~~ change PARTIES NAMES  ~~~~~~~~~~~~~~~~
+
+adjust_abbreviation_parties <- function(df) {
+  
+  df$SG_PARTIDO[df$SG_PARTIDO == "PFL"] <- "UNIÃO BRASIL"
+  df$SG_PARTIDO[df$SG_PARTIDO == "DEM"] <- "UNIÃO BRASIL"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PSL"] <- "UNIÃO BRASIL"
+  df$SG_PARTIDO[df$SG_PARTIDO == "UNIÃO"] <- "UNIÃO BRASIL"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PODE"] <- "PODEMOS"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PTN"] <- "PODEMOS"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PHS"] <- "PODEMOS"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PMDB"] <- "MDB"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PC do B"] <- "PCdoB"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PPS"] <- "CIDADANIA"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PR"] <- "PL"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PRB"] <- "REPUBLICANOS"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PTC"] <- "AGIR"
+  
+  df$SG_PARTIDO[df$SG_PARTIDO == "REPUBLICANOS"] <- "Republicanos"
+  df$SG_PARTIDO[df$SG_PARTIDO == "UNIÃO BRASIL"] <- "União Brasil"
+  df$SG_PARTIDO[df$SG_PARTIDO == "PATRIOTA"] <- "Patriota"
+  df$SG_PARTIDO[df$SG_PARTIDO == "SOLIDARIEDADE"] <- "Solidariedade"
   
   return(df)
 }
@@ -73,10 +126,85 @@ separate_by_position <- function(df) {
 
 select_elected <- function(df) {
   
-  df <- df %>%
-    filter(DS_SIT_TOT_TURNO == "ELEITO ELEITO POR MÉDIA" || DS_SIT_TOT_TURNO == "ELEITO POR QP")
+  situation <- c(
+    "ELEITO ELEITO POR MÉDIA",
+    "ELEITO POR QP",
+    "ELEITO"
+  )
   
-  return(df)
+  elected_df <- df %>%
+    dplyr::filter(DS_SIT_TOT_TURNO %in% situation)
+  
+  return(elected_df)
+}
+
+
+
+# ~~~~ function ~~~~ set PROPORTION
+
+set_proportion_by_year_party <- function(df) {
+  
+  df_total_by_candidates <- df %>%
+    group_by(ANO_ELEICAO, DS_CARGO, NM_CANDIDATO) %>%
+    summarize(QUANTITY = sum(QUANTITY))
+  
+  df_by_party <- df %>%
+    group_by(ANO_ELEICAO, DS_CARGO, SG_PARTIDO) %>%
+    summarize(QUANTITY = sum(QUANTITY))
+  
+  df_by_party$TOTAL_ELECTED <- sum(df$QUANTITY)
+  
+  df_by_party$PROPORTION <- (df_by_party$QUANTITY * 100)/df_by_party$TOTAL_ELECTED
+  
+  return(df_by_party)
+}
+
+
+
+# ~~~~ function ~~~~ PLOT
+
+proportional_stacked_area <- function(df) {
+  
+  df$SG_PARTIDO <- factor(df$SG_PARTIDO,
+                          levels=c(
+                            "PMN", "PSOL", "PCdoB", "PT", "PV", "PDT", "PSB", 
+                            "Solidariedade", "MDB", "PSD", "PSDB", "AVANTE", "PRP",
+                            "PROS", "PP", "PTC", "PRTB", "Patriota", "PHS",
+                            "PSC", "União Brasil", "PL", "PTB", "Republicanos"
+                          )
+  )
+  
+  # Proportional Stacked Area Chart
+  df %>%
+    ggplot(aes(x= ANO_ELEICAO,
+               y= PROPORTION,  # REQUIRE TO DO
+               fill=SG_PARTIDO)) +
+    geom_area(alpha=0.6 , 
+              size=0.7, 
+              colour="black") +
+    scale_fill_manual(values = parties_colores)
+  
+}
+
+
+
+# ~~~~ function ~~~~ SAVE PLOT
+
+plot_save <- function(df) {
+  
+  if ("Deputado Federal" %in% df$DS_CARGO) {
+    rep_type <- "federal"
+  } else {
+    rep_type <- "state"
+  }
+  
+  file_name <- paste0("../saved_charts/proportional_stacked_area_MG_representatives_", rep_type, ".jpg")
+  
+  ggsave(df, filename=file_name,
+         units = "cm",
+         width = 15,
+         height = 10
+  )
 }
 
 
@@ -89,17 +217,31 @@ automatic_analysis <-function(df_list) {
     
     df <- reduce_variables(df)
     
+    df <- adjust_abbreviation_parties(df)
+    
     df_representatives <- separate_by_position(df) # return a list[1 e 2]
     
     state_rep <- select_elected(df_representatives[[1]])
     federal_rep <- select_elected(df_representatives[[2]])
     
-    by_states <- rbind(by_states, state_rep)
-    by_federals <- rbind(by_federals, federal_rep)
+    print(typeof(state_rep))
+    print(dim(state_rep))
+    
+    state_rep$QUANTITY <- 1
+    federal_rep$QUANTITY <- 1
+    
+    state_rep_by_party <- set_proportion_by_year_party(state_rep)
+    federal_rep_by_party <- set_proportion_by_year_party(federal_rep)
+    
+    by_states <- rbind(by_states, state_rep_by_party)
+    by_federals <- rbind(by_federals, federal_rep_by_party)
   }
   
-  # PLOT for each cargo
-  # SAVE para cada cargo
+  plot_state_rep <- proportional_stacked_area(by_states)
+  plot_federals_rep <- proportional_stacked_area(by_federals)
+  
+  plot_save(plot_state_rep)
+  plot_save(plot_federals_rep)
   
 }
 
@@ -121,18 +263,12 @@ all_dataframes <- list(
   mg_2018
 )
 
-table(mg_2018$DS_SIT_TOT_TURNO)
+
 
 
 # ~~~~~~~~~~~~~~~~  AUTOMATION  ~~~~~~~~~~~~~~~~
 
 automatic_analysis(all_dataframes)
-
-
-
-
-
-
 
 
 
