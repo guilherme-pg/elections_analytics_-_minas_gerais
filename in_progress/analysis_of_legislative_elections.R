@@ -4,7 +4,7 @@
 
 
 # SET MAIN DIRECTORY
-setwd("C:/Users/guima/Desktop/data_science/Projetos/elections_analytics_-_minas_gerais/in_progress")
+setwd("C:/Users/guima/Desktop/data_science/Projetos/elections_analytics_-_minas_gerais/ready_code")
 
 
 library(dplyr)

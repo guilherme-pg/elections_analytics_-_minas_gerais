@@ -24,6 +24,15 @@
 
 <p>In the first round of elections for Governor and President in 2022, the correlation between voters of the candidate for the Government, Zema, and the candidate for the Presidency, Bolsonaro, proved to be stronger than the relationship between Lula and Kalil, candidates for the Presidency and for the Government , respectively.</p>
 
+<p>Although these relations between the Presidential and State Elections for Governors may indicate a correlation of the electorate, there is a disparity in the concentration of votes by municipality, in which the Capital (Belo Horizonte) has a much larger number of voters in relation to the other municipalities.
+Thus, although each vote has the same weight, the value of advertising and its concentration in the capital's electorate may imply a different strategic value.</p>
+
+![My Image](saved_charts/cols_election_2022_MG_party_performance_by_population.jpg)
+
+
+
+
+
 
 <p>Source: https://dadosabertos.tse.jus.br/dataset/</p>
 
