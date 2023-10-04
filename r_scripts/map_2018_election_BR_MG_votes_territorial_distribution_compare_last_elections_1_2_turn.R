@@ -10,7 +10,10 @@
 
 
 # SET MAIN DIRECTORY
-setwd("C:/Users/guima/Desktop/data_science/Projetos/elections_analytics_-_minas_gerais")
+setwd("C:/Users/guilhermevmmpg/Documents/DEV/projetos/elections_analytics_-_minas_gerais")
+
+install.packages(c('dplyr', 'ggplot2', 'sf'))
+
 
 library(dplyr)
 library(ggplot2)

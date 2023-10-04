@@ -41,10 +41,8 @@ Source: https://dadosabertos.tse.jus.br/dataset/
 
 To Improve:
 * add 2022 to the gif map.
-* add 2022 for valid votes plot.
 * add the proportion of votes per city to the state total.
 * increase GIF duration time
-* add other analyzes.
 
 
 

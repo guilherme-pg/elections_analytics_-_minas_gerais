@@ -48,7 +48,9 @@ __pycache__
 /dados
 /.Rhistory
 /to_create_mesoregions_dataset.R
-
+/data_processed
+/raw_data
+/experimental_charts
 
 
 

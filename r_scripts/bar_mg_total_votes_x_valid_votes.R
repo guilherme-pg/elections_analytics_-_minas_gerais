@@ -1,14 +1,19 @@
 # total votes vs valid votes
 
 
-
-
 # SET MAIN DIRECTORY
-setwd("C:/Users/guima/Desktop/data_science/Projetos/elections_analytics_-_minas_gerais")
+setwd("C:/Users/guilhermevmmpg/Documents/DEV/projetos/elections_analytics_-_minas_gerais")
+
+Sys.setlocale("LC_ALL","English")
+
+# installing packages if necessary
+# install.packages('dplyr')
+# install.packages('ggplot2')
 
 
 library(dplyr)
 library(ggplot2)
+
 
 
 options(scipen=999)
@@ -16,13 +21,7 @@ options(scipen=999)
 
 # ~~~~~~~~~~~~~~~~  IMPORT DATA  ~~~~~~~~~~~~~~~~
 
-pr_votes_2010_mg <- read.table("dados/pr_votes_2010_mg.csv", header=TRUE, sep=",")
-pr_votes_2014_mg <- read.table("dados/pr_votes_2014_mg.csv", header=TRUE, sep=",")
-pr_votes_2018_mg <- read.table("dados/pr_votes_2018_mg.csv", header=TRUE, sep=",")
-
-pr_votes_2010_br <- read.table("dados/votacao_secao_2010_BR.csv", header=TRUE, sep=";")
-pr_votes_2014_br <- read.table("dados/votacao_secao_2014_BR.csv", header=TRUE, sep=";")
-pr_votes_2018_br <- read.table("dados/votacao_secao_2018_BR.csv", header=TRUE, sep=";")
+pr_votes_2014_br <- read.table("raw_data/votacao_secao_2014_BR.csv", header=TRUE, sep=";")
 
 
 
@@ -110,67 +109,46 @@ select_valid_votes <- function(df) {
 
 
 # ~~~~~~~~~~~~~~~~  SELECT ONLY SECOND TURN  ~~~~~~~~~~~~~~~~
-
-pr_votes_2010_mg_2_turn <- select_second_turn(pr_votes_2010_mg)
-pr_votes_2014_mg_2_turn <- select_second_turn(pr_votes_2014_mg)
-pr_votes_2018_mg_2_turn <- select_second_turn(pr_votes_2018_mg)
-
-pr_votes_2010_br_2_turn <- select_second_turn(pr_votes_2010_br)
 pr_votes_2014_br_2_turn <- select_second_turn(pr_votes_2014_br)
-pr_votes_2018_br_2_turn <- select_second_turn(pr_votes_2018_br)
-
-
-
 
 
 # ~~~~~~~~~~~~~~~~  SET PROPORTION AND PERCENT from TOTAL VOTES  ~~~~~~~~~~~~~~~~
-
-tv_pr_votes_2010_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2010_mg_2_turn)
-tv_pr_votes_2014_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2014_mg_2_turn)
-tv_pr_votes_2018_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2018_mg_2_turn)
-
-tv_pr_votes_2010_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2010_br_2_turn)
 tv_pr_votes_2014_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2014_br_2_turn)
-tv_pr_votes_2018_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2018_br_2_turn)
-
-
-
 
 
 # ~~~~~~~~~~~~~~~~  SET PROPORTION AND PERCENT from VALID VOTES  ~~~~~~~~~~~~~~~~
-
-vv_pr_votes_2010_mg_2_turn <- select_valid_votes(pr_votes_2010_mg_2_turn)
-vv_pr_votes_2014_mg_2_turn <- select_valid_votes(pr_votes_2014_mg_2_turn)
-vv_pr_votes_2018_mg_2_turn <- select_valid_votes(pr_votes_2018_mg_2_turn)
-
-vv_pr_votes_2010_br_2_turn <- select_valid_votes(pr_votes_2010_br_2_turn)
 vv_pr_votes_2014_br_2_turn <- select_valid_votes(pr_votes_2014_br_2_turn)
-vv_pr_votes_2018_br_2_turn <- select_valid_votes(pr_votes_2018_br_2_turn)
-
-
-
-
-
-
 
 
 
 # ~~~~~~~~~~~~~~~~  PLOT DIFFERENCE: VALID x TOTAL VOTES  ~~~~~~~~~~~~~~~~
 
+# group by nm_votavel and votes_measure to get TOTAL VOTES
 tv_pr_grouped_br <- tv_pr_votes_2014_br_2_turn %>%
   group_by(NM_VOTAVEL, VOTES_MEASURE) %>%
   summarise(QT_VOTOS = sum(QT_VOTOS))
 
+# TO IMPROVE: optimize
+# add TOTAL_VOTES column
+# add PROPORTION column
+# add PERCENT column
+# add PERCENT_FORMAT column
 tv_pr_grouped_br$TOTAL_VOTES <- sum(tv_pr_grouped_br$QT_VOTOS)
 tv_pr_grouped_br$PROPORTION <- tv_pr_grouped_br$QT_VOTOS/ tv_pr_grouped_br$TOTAL_VOTES
 tv_pr_grouped_br$PERCENT <- tv_pr_grouped_br$PROPORTION *100
 tv_pr_grouped_br$PERCENT_FORMAT <- paste0(sprintf("%4.2f", tv_pr_grouped_br$PERCENT), "%")
 
 
+# group by nm_botavel and votes_measure to get VALID VOTES
 vv_pr_grouped_br <- vv_pr_votes_2014_br_2_turn %>%
   group_by(NM_VOTAVEL, VOTES_MEASURE) %>%
   summarise(QT_VOTOS = sum(QT_VOTOS))
 
+# TO IMPROVE: optimize
+# add TOTAL_VOTES column
+# add PROPORTION column
+# add PERCENT column
+# add PERCENT_FORMAT column
 vv_pr_grouped_br$TOTAL_VOTES <- sum(vv_pr_grouped_br$QT_VOTOS)
 vv_pr_grouped_br$PROPORTION <- vv_pr_grouped_br$QT_VOTOS/ vv_pr_grouped_br$TOTAL_VOTES
 vv_pr_grouped_br$PERCENT <- vv_pr_grouped_br$PROPORTION *100
@@ -193,15 +171,15 @@ comparasion_colores <- c(
 
 
 
+# PLOT
 compare_pr_votes_2014_br_2_turn %>%
   ggplot(aes(x=forcats::fct_reorder(NM_VOTAVEL, PERCENT, .desc=TRUE), y=PERCENT, fill=NM_VOTAVEL)) +
   geom_col(
-    position = position_dodge(0.9)
+    position = position_dodge2(preserve = "single")
   ) +
-  facet_grid(~VOTES_MEASURE, scales="free_x") +
+  facet_grid(~VOTES_MEASURE, scales="free_x", space="free_x") +
   geom_text(
-    aes(label=PERCENT_FORMAT), 
-    position = position_dodge(0.9),
+    aes(label=PERCENT_FORMAT),
     color="black",vjust =-1, size=3
   ) +
   theme(
@@ -229,6 +207,7 @@ compare_pr_votes_2014_br_2_turn %>%
   ) +
   lims(y=c(0, 60))
 
+
 # REQUIRE: reduce "valid votes" column width 
 
 ggsave("cols_election_BR_total_votes_X_valid_votes.jpg",
@@ -236,15 +215,3 @@ ggsave("cols_election_BR_total_votes_X_valid_votes.jpg",
        width = 15,
        height = 10
 )
-
-
-
-
-
-
-
-
-
-
-
-

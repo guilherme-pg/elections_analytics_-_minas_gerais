@@ -1,11 +1,10 @@
 # COLS - TOTAL VOTES MG x BR
 
 
-
-
 # SET MAIN DIRECTORY
-setwd("C:/Users/guima/Desktop/data_science/Projetos/elections_analytics_-_minas_gerais")
+setwd("C:/Users/guilhermevmmpg/Documents/DEV/projetos/elections_analytics_-_minas_gerais")
 
+Sys.setlocale("LC_ALL","English")
 
 library(dplyr)
 library(ggplot2)
@@ -16,14 +15,10 @@ options(scipen=999)
 
 # ~~~~~~~~~~~~~~~~  IMPORT DATA  ~~~~~~~~~~~~~~~~
 
-pr_votes_2010_mg <- read.table("dados/pr_votes_2010_mg.csv", header=TRUE, sep=",")
-pr_votes_2014_mg <- read.table("dados/pr_votes_2014_mg.csv", header=TRUE, sep=",")
-pr_votes_2018_mg <- read.table("dados/pr_votes_2018_mg.csv", header=TRUE, sep=",")
-
-pr_votes_2010_br <- read.table("dados/votacao_secao_2010_BR.csv", header=TRUE, sep=";")
-pr_votes_2014_br <- read.table("dados/votacao_secao_2014_BR.csv", header=TRUE, sep=";")
-pr_votes_2018_br <- read.table("dados/votacao_secao_2018_BR.csv", header=TRUE, sep=";")
-
+pr_votes_2010_ufs <- read.table("raw_data/votacao_secao_2010_BR.csv", header=TRUE, sep=";")
+pr_votes_2014_ufs <- read.table("raw_data/votacao_secao_2014_BR.csv", header=TRUE, sep=";")
+pr_votes_2018_ufs <- read.table("raw_data/votacao_secao_2018_BR.csv", header=TRUE, sep=";")
+pr_votes_2022_ufs <- read.table("raw_data/votacao_secao_2022_BR.csv", header=TRUE, sep=";")
 
 
 
@@ -32,9 +27,20 @@ pr_votes_2018_br <- read.table("dados/votacao_secao_2018_BR.csv", header=TRUE, s
 # ~~~~~~~~~~~~~~~~  FUNCTIONS  ~~~~~~~~~~~~~~~~
 
 # ~~~~ function ~~~~ set br df column sg_uf as 'br'
-set_uf_as_br <- function(df) {
-  df$SG_UF <- "Brasil"
-  return(df)
+separate_mg_from_br <- function(df) {
+  
+  df_mg <- df %>%
+    filter(SG_UF == 'MG')
+  df_mg$SG_UF <- "Minas Gerais"
+  
+  df_br <- df %>%
+    group_by(NM_VOTAVEL, ANO_ELEICAO, DS_CARGO) %>%
+    summarise(QT_VOTOS = sum(QT_VOTOS))
+  df_br$SG_UF <- "Brasil"
+  
+  df_br_and_mg <- list(df_br, df_mg)
+  
+  return(df_br_and_mg)
 }
 
 
@@ -117,57 +123,60 @@ select_valid_votes <- function(df) {
 
 
 
-
-
-# ~~~~~~~~~~~~~~~~  SET SG_UF FROM BR DATAFRAMES AS "BR"  ~~~~~~~~~~~~~~~~
-
-pr_votes_2010_br <- set_uf_as_br(pr_votes_2010_br)
-pr_votes_2014_br <- set_uf_as_br(pr_votes_2014_br)
-pr_votes_2018_br <- set_uf_as_br(pr_votes_2018_br)
-
-
-
-
-
-
 # ~~~~~~~~~~~~~~~~  SELECT ONLY SECOND TURN  ~~~~~~~~~~~~~~~~
 
-pr_votes_2010_mg_2_turn <- select_second_turn(pr_votes_2010_mg)
-pr_votes_2014_mg_2_turn <- select_second_turn(pr_votes_2014_mg)
-pr_votes_2018_mg_2_turn <- select_second_turn(pr_votes_2018_mg)
-
-pr_votes_2010_br_2_turn <- select_second_turn(pr_votes_2010_br)
-pr_votes_2014_br_2_turn <- select_second_turn(pr_votes_2014_br)
-pr_votes_2018_br_2_turn <- select_second_turn(pr_votes_2018_br)
+pr_votes_2010_all_2_turn <- select_second_turn(pr_votes_2010_ufs)
+pr_votes_2014_all_2_turn <- select_second_turn(pr_votes_2014_ufs)
+pr_votes_2018_all_2_turn <- select_second_turn(pr_votes_2018_ufs)
+pr_votes_2022_all_2_turn <- select_second_turn(pr_votes_2022_ufs)
 
 
+
+# ~~~~~~~~~~~~~~~~  separate MG and group the total for BR  ~~~~~~~~~~~~~~~~
+
+list_2010_br_and_mg <- separate_mg_from_br(pr_votes_2010_all_2_turn)
+pr_votes_2010_br <- list_2010_br_and_mg[[1]]
+pr_votes_2010_mg <- list_2010_br_and_mg[[2]]
+
+list_2014_br_and_mg <- separate_mg_from_br(pr_votes_2014_all_2_turn)
+pr_votes_2014_br <- list_2014_br_and_mg[[1]]
+pr_votes_2014_mg <- list_2014_br_and_mg[[2]]
+
+list_2018_br_and_mg <- separate_mg_from_br(pr_votes_2018_all_2_turn)
+pr_votes_2018_br <- list_2018_br_and_mg[[1]]
+pr_votes_2018_mg <- list_2018_br_and_mg[[2]]
+
+list_2022_br_and_mg <- separate_mg_from_br(pr_votes_2022_all_2_turn)
+pr_votes_2022_br <- list_2022_br_and_mg[[1]]
+pr_votes_2022_mg <- list_2022_br_and_mg[[2]]
 
 
 
 # ~~~~~~~~~~~~~~~~  SET PROPORTION AND PERCENT from TOTAL VOTES  ~~~~~~~~~~~~~~~~
 
-tv_pr_votes_2010_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2010_mg_2_turn)
-tv_pr_votes_2014_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2014_mg_2_turn)
-tv_pr_votes_2018_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2018_mg_2_turn)
+# tv_pr_votes_2010_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2010_mg)
+# tv_pr_votes_2014_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2014_mg)
+# tv_pr_votes_2018_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2018_mg)
+# tv_pr_votes_2022_mg_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2022_mg)
 
-tv_pr_votes_2010_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2010_br_2_turn)
-tv_pr_votes_2014_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2014_br_2_turn)
-tv_pr_votes_2018_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2018_br_2_turn)
-
-
+# tv_pr_votes_2010_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2010_br)
+# tv_pr_votes_2014_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2014_br)
+# tv_pr_votes_2018_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2018_br)
+# tv_pr_votes_2022_br_2_turn <- set_total_votes_proportions_and_percents(pr_votes_2022_br)
 
 
 
 # ~~~~~~~~~~~~~~~~  SET PROPORTION AND PERCENT from VALID VOTES  ~~~~~~~~~~~~~~~~
 
-vv_pr_votes_2010_mg_2_turn <- select_valid_votes(pr_votes_2010_mg_2_turn)
-vv_pr_votes_2014_mg_2_turn <- select_valid_votes(pr_votes_2014_mg_2_turn)
-vv_pr_votes_2018_mg_2_turn <- select_valid_votes(pr_votes_2018_mg_2_turn)
+vv_pr_votes_2010_mg_2_turn <- select_valid_votes(pr_votes_2010_mg)
+vv_pr_votes_2014_mg_2_turn <- select_valid_votes(pr_votes_2014_mg)
+vv_pr_votes_2018_mg_2_turn <- select_valid_votes(pr_votes_2018_mg)
+vv_pr_votes_2022_mg_2_turn <- select_valid_votes(pr_votes_2022_mg)
 
-vv_pr_votes_2010_br_2_turn <- select_valid_votes(pr_votes_2010_br_2_turn)
-vv_pr_votes_2014_br_2_turn <- select_valid_votes(pr_votes_2014_br_2_turn)
-vv_pr_votes_2018_br_2_turn <- select_valid_votes(pr_votes_2018_br_2_turn)
-
+vv_pr_votes_2010_br_2_turn <- select_valid_votes(pr_votes_2010_br)
+vv_pr_votes_2014_br_2_turn <- select_valid_votes(pr_votes_2014_br)
+vv_pr_votes_2018_br_2_turn <- select_valid_votes(pr_votes_2018_br)
+vv_pr_votes_2022_br_2_turn <- select_valid_votes(pr_votes_2022_br)
 
 
 
@@ -178,9 +187,11 @@ pr_vv_2_turn_merged <- rbind(
   vv_pr_votes_2010_mg_2_turn,
   vv_pr_votes_2014_mg_2_turn,
   vv_pr_votes_2018_mg_2_turn,
+  vv_pr_votes_2022_mg_2_turn,
   vv_pr_votes_2010_br_2_turn,
   vv_pr_votes_2014_br_2_turn,
-  vv_pr_votes_2018_br_2_turn
+  vv_pr_votes_2018_br_2_turn,
+  vv_pr_votes_2022_br_2_turn
 )
 
 
@@ -197,6 +208,7 @@ pr_vv_2_turn_merged$PARTY[ pr_vv_2_turn_merged$NM_VOTAVEL == "JOSÉ SERRA" ] <- 
 pr_vv_2_turn_merged$PARTY[ pr_vv_2_turn_merged$NM_VOTAVEL == "DILMA VANA ROUSSEFF" ] <- "PT"
 pr_vv_2_turn_merged$PARTY[ pr_vv_2_turn_merged$NM_VOTAVEL == "FERNANDO HADDAD" ] <- "PT"
 pr_vv_2_turn_merged$PARTY[ pr_vv_2_turn_merged$NM_VOTAVEL == "JAIR MESSIAS BOLSONARO" ] <- "PL"
+pr_vv_2_turn_merged$PARTY[ pr_vv_2_turn_merged$NM_VOTAVEL == "LUIZ INÁCIO LULA DA SILVA" ] <- "PT"
 
 
 
@@ -210,6 +222,7 @@ pr_vv_2_turn_merged$NM_VOTAVEL[ pr_vv_2_turn_merged$NM_VOTAVEL == "JOSÉ SERRA" 
 pr_vv_2_turn_merged$NM_VOTAVEL[ pr_vv_2_turn_merged$NM_VOTAVEL == "DILMA VANA ROUSSEFF" ] <- "Dilma Rousseff"
 pr_vv_2_turn_merged$NM_VOTAVEL[ pr_vv_2_turn_merged$NM_VOTAVEL == "FERNANDO HADDAD" ] <- "Fernando Haddad"
 pr_vv_2_turn_merged$NM_VOTAVEL[ pr_vv_2_turn_merged$NM_VOTAVEL == "JAIR MESSIAS BOLSONARO" ] <- "Jair Bolsonaro"
+pr_vv_2_turn_merged$NM_VOTAVEL[ pr_vv_2_turn_merged$NM_VOTAVEL == "LUIZ INÁCIO LULA DA SILVA" ] <- "Lula"
 
 
 
@@ -217,12 +230,13 @@ pr_vv_2_turn_merged$NM_VOTAVEL[ pr_vv_2_turn_merged$NM_VOTAVEL == "JAIR MESSIAS 
 pr_vv_2_turn_merged$NM_VOTAVEL <- factor(pr_vv_2_turn_merged$NM_VOTAVEL, levels=c(
   "Dilma Rousseff",
   "Fernando Haddad",
+  "Lula",
   "Aécio Neves",
   "José Serra",
   "Jair Bolsonaro"
 ))
 
-pr_vv_2_turn_merged$SG_UF[pr_vv_2_turn_merged$SG_UF=="MG"] <- "Minas Gerais"
+# pr_vv_2_turn_merged$SG_UF[pr_vv_2_turn_merged$SG_UF=="MG"] <- "Minas Gerais"
 
 
 
@@ -234,7 +248,8 @@ party_colors <- c(
   "Aécio Neves"="royalblue",
   "Dilma Rousseff"="firebrick",
   "Fernando Haddad"="firebrick",
-  "Jair Bolsonaro"="blue"
+  "Jair Bolsonaro"="blue",
+  "Lula"="firebrick"
 )
 
 
@@ -278,7 +293,7 @@ pr_vv_2_turn_merged %>%
   
   
 
-ggsave("cols_election_BR_valid_votes_br_x_minas_gerais.jpg",
+ggsave("saved_charts/cols_election_BR_valid_votes_br_x_minas_gerais.jpg",
        units = "cm",
        width = 15,
        height = 10
